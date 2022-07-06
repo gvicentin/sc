@@ -3,8 +3,11 @@
 #include <stdint.h>
 #include <regex.h>
 
+#define OCTET_BUFF_LEN 16
+
 void printUsageAndExit(const char *binary);
-int readCidrNotation(const char *cidr, uint32_t *ip, uint8_t *mask);
+
+uint8_t octetFromStr(const char *str, size_t start, size_t end);
 
 int main(int argc, char *argv[]) {
 
@@ -28,15 +31,29 @@ int main(int argc, char *argv[]) {
         printUsageAndExit(argv[0]);
     }
 
-    printf("IP: %s\n", string);
-    for (int i = 1; i < nmatch; ++i) {
-        char numStr[10];
-        int len = pmatch[i].rm_eo - pmatch[i].rm_so;
-        sprintf(numStr, "%.*s", len,  &string[pmatch[i].rm_so]);
-        numStr[len] = '\0';
-        int num = atoi(numStr);
-        printf("%d\n", num);
-    }
+    printf("Input: %s\n", string);
+
+    uint8_t fOctet, sOctet, tOctet, foOctet;
+    fOctet = octetFromStr(string, pmatch[1].rm_so, pmatch[1].rm_eo);
+    sOctet = octetFromStr(string, pmatch[2].rm_so, pmatch[2].rm_eo);
+    tOctet = octetFromStr(string, pmatch[3].rm_so, pmatch[3].rm_eo);
+    foOctet = octetFromStr(string, pmatch[4].rm_so, pmatch[4].rm_eo);
+
+    printf("Fist octet: %u\n", fOctet);
+    printf("Second octet: %u\n", sOctet);
+    printf("Third octet: %u\n", tOctet);
+    printf("Fourth octet: %u\n", foOctet);
+
+    uint32_t ip = 0x00;
+    ip |= fOctet << 24;
+    ip |= sOctet << 16;
+    ip |= tOctet << 8;
+    ip |= foOctet;
+
+    printf("IP Long: %u\n", ip);
+
+    // de-initialization
+    regfree(&reegex);
 
     return 0;
 }
@@ -45,4 +62,16 @@ void printUsageAndExit(const char *binary) {
     printf("Usage: %s IP\n", binary);
     printf("Example: %s 10.0.0.0/24\n\n", binary);
     exit(1);
+}
+
+uint8_t octetFromStr(const char *str, size_t start, size_t end) {
+    char buff[OCTET_BUFF_LEN];
+    int len = end - start;
+
+    // fill buffer with octet string
+    sprintf(buff, "%.*s", len,  &str[start]);
+    buff[len] = '\0';
+
+    // convert to integer
+    return (uint8_t) atoi(buff);
 }

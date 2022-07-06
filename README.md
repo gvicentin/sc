@@ -1,4 +1,6 @@
-# Subnet Calculator TODO
+# Subnet Calculator
+
+## TODO
 
 - Regular expression to validate CIDR input
 - Get group values from the regular expression
