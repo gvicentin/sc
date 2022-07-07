@@ -1,65 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <regex.h>
 
+#define OCTET_MAX 4
+#define NMATCH_MAX 6
+
+#define CIDR_BUFF_LEN 64
 #define OCTET_BUFF_LEN 16
 
-void printUsageAndExit(const char *binary);
+typedef struct {
+    uint32_t ip;
+    uint32_t mask;
+} Cidr;
 
-uint8_t extractFromStr(const char *str, size_t start, size_t end);
+void printUsageAndExit(const char *binary);
+int extractDecimal(const char *str, size_t start, size_t end);
+bool createCidr(Cidr *cidr,const char *input);
 
 int main(int argc, char *argv[]) {
+    Cidr cidr = {0};
 
-    regex_t reegex;
-    size_t nmatch = 6;
-    regmatch_t pmatch[6];
-    int value;
-
-    if (argc < 2) {
+    if (argc < 2 || !createCidr(&cidr, argv[1])) {
         printUsageAndExit(argv[0]);
     }
 
-    const char *string = argv[1];
-    const char *pattern = "^([0-9]{1,3})\\.([0-9]{1,3})\\."
-                          "([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$";
-    regcomp(&reegex, pattern, REG_EXTENDED);
+    printf("IP Long: %u\n", cidr.ip);
+    printf("Mask Long: %u\n", cidr.mask);
 
-    value = regexec(&reegex, string, nmatch, pmatch, 0);
-    if (value != 0) {
-        printf("Invalid IP provided %s\n", string);
-        printUsageAndExit(argv[0]);
-    }
-
-    printf("Input: %s\n", string);
-
-    uint8_t fOctet, sOctet, tOctet, foOctet;
-    uint8_t decimalMask;
-    fOctet = extractFromStr(string, pmatch[1].rm_so, pmatch[1].rm_eo);
-    sOctet = extractFromStr(string, pmatch[2].rm_so, pmatch[2].rm_eo);
-    tOctet = extractFromStr(string, pmatch[3].rm_so, pmatch[3].rm_eo);
-    foOctet = extractFromStr(string, pmatch[4].rm_so, pmatch[4].rm_eo);
-    decimalMask = extractFromStr(string, pmatch[5].rm_so, pmatch[5].rm_eo);
-
-    printf("Fist octet: %u\n", fOctet);
-    printf("Second octet: %u\n", sOctet);
-    printf("Third octet: %u\n", tOctet);
-    printf("Fourth octet: %u\n", foOctet);
-
-    uint32_t ip = 0x00;
-    ip |= fOctet << 24;
-    ip |= sOctet << 16;
-    ip |= tOctet << 8;
-    ip |= foOctet;
-
-    uint32_t mask = 0xFFFFFFFF;
-    mask = mask << (32 - decimalMask);
-
-    printf("IP Long: %u\n", ip);
-    printf("Mask Long: %u\n", mask);
-
-    // de-initialization
-    regfree(&reegex);
 
     return 0;
 }
@@ -70,7 +39,7 @@ void printUsageAndExit(const char *binary) {
     exit(1);
 }
 
-uint8_t extractFromStr(const char *str, size_t start, size_t end) {
+int extractDecimal(const char *str, size_t start, size_t end) {
     char buff[OCTET_BUFF_LEN];
     int len = end - start;
 
@@ -79,5 +48,69 @@ uint8_t extractFromStr(const char *str, size_t start, size_t end) {
     buff[len] = '\0';
 
     // convert to integer
-    return (uint8_t) atoi(buff);
+    return atoi(buff);
+}
+
+bool createCidr(Cidr *cidr, const char *input) {
+    // CIDR regex
+    regex_t cidrRegex;
+    regmatch_t pmatch[NMATCH_MAX];
+    size_t nmatch = NMATCH_MAX;
+    int regexValue;
+
+    // CIDR
+    int octet[OCTET_MAX];
+    int mask;
+
+    // error message
+    const char *octetIndex[] = {
+        "first",
+        "second",
+        "third",
+        "fourth"
+    };
+
+    regcomp(
+        &cidrRegex,
+        "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$",
+        REG_EXTENDED
+    );
+
+    regexValue = regexec(&cidrRegex, input, nmatch, pmatch, 0);
+    regfree(&cidrRegex);
+
+    if (regexValue != 0) {
+        // invalid CIDR ip
+        printf("Invalid IP provided %s\n", input);
+        return false;
+    }
+
+    for (int i = 0; i < OCTET_MAX; ++i) {
+        // extract all octets
+        octet[i] = extractDecimal(input, pmatch[i+1].rm_so, pmatch[i+1].rm_eo);
+        if (octet[i] > 255) {
+            printf("The %s octet is invalid (%d)\n", octetIndex[i], octet[i]);
+            return false;
+        }
+    }
+
+    // extract mask
+    mask = extractDecimal(input, pmatch[5].rm_so, pmatch[5].rm_eo);
+    if (mask > 32) {
+        printf("The mask is invalid (%d)\n", mask);
+        return false;
+    }
+
+    // store ip as integer
+    cidr->ip = 0x00;
+    cidr->ip |= octet[0] << 24;
+    cidr->ip |= octet[1] << 16;
+    cidr->ip |= octet[2] << 8;
+    cidr->ip |= octet[3];
+
+    // store mask as integer
+    cidr->mask = 0xFFFFFFFF;
+    cidr->mask = cidr->mask << (32 - mask);
+
+    return true;
 }
