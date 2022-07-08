@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <regex.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <regex.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define OCTET_MAX 4
 #define NMATCH_MAX 6
@@ -18,6 +18,7 @@ typedef struct {
 void printUsageAndExit(const char *binary);
 int extractDecimal(const char *str, size_t start, size_t end);
 bool createCidr(Cidr *cidr,const char *input);
+void showReport(Cidr *cidr);
 
 int main(int argc, char *argv[]) {
     Cidr cidr = {0};
@@ -26,9 +27,7 @@ int main(int argc, char *argv[]) {
         printUsageAndExit(argv[0]);
     }
 
-    printf("IP Long: %u\n", cidr.ip);
-    printf("Mask Long: %u\n", cidr.mask);
-
+    showReport(&cidr);
 
     return 0;
 }
@@ -60,7 +59,7 @@ bool createCidr(Cidr *cidr, const char *input) {
 
     // CIDR
     int octet[OCTET_MAX];
-    int mask;
+    int maskBits;
 
     // error message
     const char *octetIndex[] = {
@@ -95,9 +94,9 @@ bool createCidr(Cidr *cidr, const char *input) {
     }
 
     // extract mask
-    mask = extractDecimal(input, pmatch[5].rm_so, pmatch[5].rm_eo);
-    if (mask > 32) {
-        printf("The mask is invalid (%d)\n", mask);
+    maskBits = extractDecimal(input, pmatch[5].rm_so, pmatch[5].rm_eo);
+    if (maskBits > 32) {
+        printf("The mask is invalid (%d)\n", maskBits);
         return false;
     }
 
@@ -110,7 +109,75 @@ bool createCidr(Cidr *cidr, const char *input) {
 
     // store mask as integer
     cidr->mask = 0xFFFFFFFF;
-    cidr->mask = cidr->mask << (32 - mask);
+    cidr->mask = cidr->mask << (32 - maskBits);
 
     return true;
+}
+
+uint32_t getCidrBlock(Cidr *cidr) {
+    return cidr->ip & cidr->mask;
+}
+
+uint32_t getBroadcast(Cidr *cidr) {
+    return cidr->ip | ~(cidr->mask);
+}
+
+uint32_t getMaskBits(Cidr *cidr) {
+    uint32_t count = 0;
+    uint32_t m = cidr->mask;
+    while (m != 0) {
+        m = m << 1;
+        ++count;
+    }
+    return count;
+}
+
+uint32_t getNumOfHosts(Cidr *cidr) {
+    return 1 << (32 - getMaskBits(cidr));
+}
+
+void printIP(char *str, uint32_t ip) {
+    uint8_t octet[OCTET_MAX];
+
+    octet[0] = ip >> 24;
+    octet[1] = ip >> 16;
+    octet[2] = ip >> 8;
+    octet[3] = ip;
+
+    sprintf(str, "%u.%u.%u.%u", octet[0], octet[1], octet[2], octet[3]);
+}
+
+void showReport(Cidr *cidr) {
+    char ipBuff[CIDR_BUFF_LEN], maskBuff[CIDR_BUFF_LEN];
+    char cidrBuff[CIDR_BUFF_LEN], cidrBlockBuff[2*CIDR_BUFF_LEN];
+    char broadcastBuff[CIDR_BUFF_LEN];
+    uint32_t cidrBlock, broadcast;
+    uint32_t maskBits, nHosts;
+
+    maskBits = getMaskBits(cidr);
+    nHosts = getNumOfHosts(cidr);
+    cidrBlock = getCidrBlock(cidr);
+    broadcast = getBroadcast(cidr);
+
+    printIP(ipBuff, cidr->ip);
+    printIP(maskBuff, cidr->mask);
+
+    printIP(cidrBuff, cidrBlock);
+    sprintf(cidrBlockBuff, "%s/%u", cidrBuff, maskBits);
+    printIP(broadcastBuff, broadcast);
+
+    printf("====================================\n");
+    printf("|            SUBNET CALC           |\n");
+    printf("====================================\n");
+    printf("IP:\t\t%20s\n", ipBuff);
+    printf("IP Hex:\t\t%20X\n", cidr->ip);
+    printf("IP Long:\t%20u\n", cidr->ip);
+    printf("CIDR Block:\t%20s\n", cidrBlockBuff);
+    printf("Broadcast:\t%20s\n", broadcastBuff);
+    printf("------------------------------------\n");
+    printf("Mask:\t\t%20s\n", maskBuff);
+    printf("Mask Hex:\t%20X\n", cidr->mask);
+    printf("Mask Long:\t%20u\n", cidr->mask);
+    printf("Mask Bits:\t%20u\n", maskBits);
+    printf("Num of Hosts:\t%20u\n", nHosts);
 }
