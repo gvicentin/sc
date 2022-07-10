@@ -13,7 +13,7 @@ static char * test_foo() {
 }
 
 static char * test_bar() {
-    mu_assert("error, bar == 5", bar == 5);
+    mu_assert("error, bar == 5", bar != 5);
     return 0;
 }
 
