@@ -8,6 +8,6 @@ echo -e "Running all Tests\n"
 for TEST in ${TESTS}
 do
     echo "Testing ${TEST} ..."
-    ./${TEST}
+    ./${TEST} 2> /dev/null
     echo ""
 done
