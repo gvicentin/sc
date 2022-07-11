@@ -52,7 +52,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
 
     if (regexValue != 0) {
         // invalid CIDR ip
-        printf("Invalid IP provided %s\n", input);
+        fprintf(stderr, "Invalid IP provided %s\n", input);
         return false;
     }
 
@@ -60,7 +60,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
         // extract all octets
         octet[i] = extractDecimal(input, pmatch[i+1].rm_so, pmatch[i+1].rm_eo);
         if (octet[i] > 255) {
-            printf("The %s octet is invalid (%d)\n", octetIndex[i], octet[i]);
+            fprintf(stderr, "The %s octet is invalid (%d)\n", octetIndex[i], octet[i]);
             return false;
         }
     }
@@ -68,7 +68,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
     // extract mask
     maskBits = extractDecimal(input, pmatch[5].rm_so, pmatch[5].rm_eo);
     if (maskBits > 32) {
-        printf("The mask is invalid (%d)\n", maskBits);
+        fprintf(stderr, "The mask is invalid (%d)\n", maskBits);
         return false;
     }
 
