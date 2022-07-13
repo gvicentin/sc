@@ -2,7 +2,7 @@
 
 A command line tool that enables subnet network calculations using **CIDR notation**.
 
-To use it, You can type your range directly in CIDR notation, and see the IP
+To use it, you can type your range directly in CIDR notation, and see the IP
 information about that range.
 
 This simple subnet calculator is **written in C**. It was created as a study about using
@@ -24,8 +24,9 @@ For example.
 
 ```sh
 # Copy binary and create symbolic link
-cp bin/sc-0.1.0 ~/.local/bin
-ln -s ~/.local/bin/sc-0.1.0 ~/.local/bin/sc
+LOCALBIN="${HOME}/.local/bin"
+cp bin/sc-0.1.0 $LOCALBIN
+cd $LOCALBIN && ln -s sc-0.1.0 sc
 ```
 
 ## Usage
