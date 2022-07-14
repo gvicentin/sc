@@ -1,5 +1,8 @@
 # Subnet Calculator (sc)
 
+![Latest Release](https://img.shields.io/github/v/release/gvicentin/sc)
+![License](https://img.shields.io/github/license/gvicentin/sc)
+
 A command line tool that enables subnet network calculations using **CIDR notation**.
 
 To use it, you can type your range directly in CIDR notation, and see the IP
