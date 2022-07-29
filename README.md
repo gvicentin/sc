@@ -2,6 +2,7 @@
 
 ![Latest Release](https://img.shields.io/github/v/release/gvicentin/sc)
 ![License](https://img.shields.io/github/license/gvicentin/sc)
+![Build And Tests Status](https://img.shields.io/github/workflow/status/gvicentin/sc/Pull%20Request%20Validation?label=build%20and%20tests&logo=c&logoColor=lightblue)
 
 A command line tool that enables subnet network calculations using **CIDR notation**.
 
