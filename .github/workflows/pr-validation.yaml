@@ -13,7 +13,7 @@ jobs:
       - name: Setup Environment
         run: |
           echo "Installing dependencies"
-          sudo apt install build-essentials
+          sudo apt install -y build-essential
 
       - name: Compile
         run: make compile
