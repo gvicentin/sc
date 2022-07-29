@@ -40,27 +40,27 @@ int main(int argc, char **argv) {
 static char * testExtractDecimal(void) {
     int decimal;
 
-    decimal = extractDecimal(m_input[0], 0, 3);
+    decimal = ExtractDecimal(m_input[0], 0, 3);
     snprintf(
         m_errorMsg,
         MSG_LEN,
-        "extractDecimal(%s, 0, 3), Expected: %d, Got: %d",
+        "ExtractDecimal(%s, 0, 3), Expected: %d, Got: %d",
         m_input[0], 192, decimal);
     mu_assert(m_errorMsg, decimal == 192);
 
-    decimal = extractDecimal(m_input[2], 7, 9);
+    decimal = ExtractDecimal(m_input[2], 7, 9);
     snprintf(
         m_errorMsg,
         MSG_LEN,
-        "extractDecimal(%s, 7, 9), Expected: %d, Got: %d",
+        "ExtractDecimal(%s, 7, 9), Expected: %d, Got: %d",
         m_input[2], 23, decimal);
     mu_assert(m_errorMsg, decimal == 23);
 
-    decimal = extractDecimal(m_input[4], 12, 13);
+    decimal = ExtractDecimal(m_input[4], 12, 13);
     snprintf(
         m_errorMsg,
         MSG_LEN,
-        "extractDecimal(%s, 12, 13), Expected: %d, Got: %d",
+        "ExtractDecimal(%s, 12, 13), Expected: %d, Got: %d",
         m_input[4], 8, decimal);
     mu_assert(m_errorMsg, decimal == 8);
 

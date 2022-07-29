@@ -10,7 +10,7 @@
 #define CIDR_BUFF_LEN 64
 #define OCTET_BUFF_LEN 16
 
-static int extractDecimal(const char *str, size_t start, size_t end) {
+static int ExtractDecimal(const char *str, size_t start, size_t end) {
     char buff[OCTET_BUFF_LEN];
     int len = end - start;
 
@@ -58,7 +58,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
 
     for (int i = 0; i < OCTET_MAX; ++i) {
         // extract all octets
-        octet[i] = extractDecimal(input, pmatch[i+1].rm_so, pmatch[i+1].rm_eo);
+        octet[i] = ExtractDecimal(input, pmatch[i+1].rm_so, pmatch[i+1].rm_eo);
         if (octet[i] > 255) {
             fprintf(stderr, "The %s octet is invalid (%d)\n", octetIndex[i], octet[i]);
             return false;
@@ -66,7 +66,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
     }
 
     // extract mask
-    maskBits = extractDecimal(input, pmatch[5].rm_so, pmatch[5].rm_eo);
+    maskBits = ExtractDecimal(input, pmatch[5].rm_so, pmatch[5].rm_eo);
     if (maskBits > 32) {
         fprintf(stderr, "The mask is invalid (%d)\n", maskBits);
         return false;
