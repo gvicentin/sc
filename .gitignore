@@ -1,3 +1,7 @@
 # Generated files
 bin/
 build/
+
+# Clangd files
+.cache/
+compile_commands.json
