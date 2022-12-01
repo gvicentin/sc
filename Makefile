@@ -19,7 +19,8 @@ NAME	:= sc
 VERSION	:= 0.1.0
 BINARY	:= $(BINDIR)/$(NAME)-$(VERSION)
 
-SOURCES		:= $(shell find $(SOURCEDIR) -name '*.c')
+ENTRYPOINT	:= $(SOURCEDIR)/main.c
+SOURCES		:= $(shell find $(SOURCEDIR) -name '*.c' -not -name 'main.c')
 OBJECTS 	:= $(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR)/%.o, $(SOURCES))
 TESTS		:= $(shell find $(TESTSDIR) -name '*.c')
 TESTSBIN	:= $(patsubst $(TESTSDIR)/%.c, $(BINDIR)/%, $(TESTS))
@@ -28,7 +29,7 @@ TESTSBIN	:= $(patsubst $(TESTSDIR)/%.c, $(BINDIR)/%, $(TESTS))
 
 compile: $(BINARY)
 
-compile-tests: $(BINDIR) $(TESTSBIN)
+compile-tests: compile $(TESTSBIN)
 
 test: compile-tests
 	./runtests.sh
@@ -37,13 +38,13 @@ clean:
 	rm -rf $(BUILDDIR) $(BINDIR)
 
 $(BINARY): $(BUILDDIR) $(BINDIR) $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $(BINARY)
+	$(CC) $(CFLAGS) $(ENTRYPOINT) $(OBJECTS) $(LDFLAGS) -o $(BINARY)
+
+$(BINDIR)/%: $(TESTSDIR)/%.c $(SOURCES)
+	$(CC) -I$(SOURCEDIR) $< -o $@
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 	$(CC) $(CFLAGS) -I$(dir $<) -c $< -o $@
-
-$(BINDIR)/%: $(TESTSDIR)/%.c
-	$(CC) -I$(SOURCEDIR) $< -o $@
 
 $(BUILDDIR):
 	mkdir -p $@
