@@ -16,7 +16,7 @@ jobs:
           sudo apt install -y build-essential
 
       - name: Compile
-        run: make compile
+        run: make compile-tests
 
       - name: Run Unit Tests
         run: ./runtests.sh
