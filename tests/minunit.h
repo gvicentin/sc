@@ -2,7 +2,7 @@
 #define MINUNIT_H
 
 #define MU_PASS     return NULL
-#define MU_MSG_FMT  "[FAILED] %s | %s::%d -> "
+#define MU_MSG_FMT  "%s | %s::%d -> "
 #define MU_MSG_ARGS __FILE__, __FUNCTION__, __LINE__
 
 #define MU_ASSERT(test, message)                                   \

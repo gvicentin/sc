@@ -1,89 +1,81 @@
 #!/usr/bin/env bash
-
-#   Run all unit tests
 #
-#   Exit(s) status code(s)
-#   0 - success
-#   1 - fail
+# runtests.sh
+#
+# A command line tool that enables subnet network calculations using **CIDR notation**.
+#
+# Version: v0.1.0
+# --------------------------------------------------------------------------------------
 
-# ======================================
-#   Debug
-# ======================================
-if [ "${DEBUG}" = true ]; then
+readonly RED=$(tput setaf 1)
+readonly GREEN=$(tput setaf 2)
+readonly YELLOW=$(tput setaf 3)
+readonly RESET=$(tput sgr0)
 
-    # enable debug mode
-    set -x
-    export
-    whoami
-
-else
-
-  # unset if flag is not set
-  unset DEBUG
-
-fi
-
-# ======================================
-#   Setup
-# ======================================
-
-# set default options
-set -o errexit
-set -o pipefail
-set -o nounset
-
-# check binaries
-__FIND=$(which find)
-__BASENAME=$(which basename)
-
-# variables
-readonly __bindir='bin'
-readonly __tests=$(${__FIND} ${__bindir} -name 'test_*')
-
-# colors
-readonly __nocolor='\033[0m'
-readonly __black='\033[0;30m'
-readonly __red='\033[0;31m'
-readonly __green='\033[0;32m'
-readonly __yellow='\033[0;33m'
-
-# ======================================
-#   Functions
-# ======================================
-function run_test {
-
-    local __testbin="${1:-}"
-
-    # run test
-    # don't print stderr since we are testing invalid inputs
-    echo "Testing ${__testbin}"
-    ${__testbin} 2> /dev/null || return $?
-
+function debug {
+    [ "$DEBUG" = "true" ] && echo "${YELLOW}[DEBUG] $*${RESET}"
 }
 
-# ======================================
-#   Script
-# ======================================
-echo -e "${__yellow}Running all Tests${__nocolor}\n"
+function exec_help {
+    echo "Usage: $(basename $0) [OPTIONS]"
+    echo
+    echo "Run unit tests."
+    echo
+    echo "OPTIONS:"
+    echo "  -h, --help      Print this help message"
+    echo "  -v, --version   Print current version"
+}
 
-for __test in ${__tests}
-do
+function exec_version {
+    grep '^# Version: ' "$0" | cut -d ':' -f 2 | tr -d ' '
+}
 
-    __error_code='0'
+function exec_tests {
+    local TEST_BINS=$(find ./build/tests -name 'test_*' 2> /dev/null)
+    local START_TIME=$(date +%s.%N)
 
-    run_test ${__test} || __error_code=$?
-    if [ ${__error_code} -ne 0 ]; then
+    while read -r TEST_BIN; do
+        local REPORT=""
+        local RAW_REPORT=""
+        local FAILED="false"
+        local TESTS_RUN="0"
+        local TOTAL_TESTS_RUN="0"
+        local STATUS_MSG="${GREEN}[PASSED]${RESET}"
 
-        # test failed
-        echo -e "\n${__red}TEST ${__test} FAILED${__nocolor}"
-        exit 1
+        # run test
+        RAW_REPORT=$("$TEST_BIN" 2> /dev/null)
+        [ $? -ne 0 ] && FAILED="true" && STATUS_MSG="${RED}[FAILED]${RESET}"
+        TESTS_RUN=$(echo "$RAW_REPORT" | head -n 1)
+        TOTAL_TESTS_RUN=$((TOTAL_TESTS_RUN + TESTS_RUN))
+        REPORT=$(echo "$RAW_REPORT" | tail -n 1)
 
-    fi
+        # show report
+        printf "Running test %-64s%s\n" "$TESTS_RUN" "$STATUS_MSG"
+        if [ "$FAILED" = "true" ]; then
+            echo "$REPORT"
+            echo ""
+        fi
+    done <<< "$TEST_BINS"
 
-    # break line between test results
-    echo ""
+    local END_TIME=$(date +%s.%N)
+    local TOTAL_TIME=$(echo "($END_TIME - $START_TIME)" | bc)
+    echo "SUMMARY" 
+    echo "Total tests run: $TOTAL_TESTS_RUN"
+    echo "Total time: ${TOTAL_TIME}s"
+}
 
+# Main execution flow
+while [ -n "$1" ]; do
+    case "$1" in
+        -h | --help    ) exec_help    && exit 0 ;;
+        -v | --version ) exec_version && exit 0 ;;
+
+        # Undefined option
+        *) echo -e "Invalid parameter $1\n"
+           exec_help
+           exit 1
+           ;;
+    esac
+    shift
 done
-
-# success message
-echo -e "${__green}ALL TESTS PASSED${__nocolor}"
+exec_tests

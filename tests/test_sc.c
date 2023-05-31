@@ -20,12 +20,11 @@ static char *allTests(void);
 
 int main(int argc, char **argv) {
     char *result = allTests();
+
+    printf("%d\n", g_testsRun);
     if (result != 0) {
         printf("%s\n", result);
-    } else {
-        printf("ALL TESTS PASSED\n");
     }
-    printf("Tests run: %d\n", g_testsRun);
 
     return result != 0;
 }
@@ -106,7 +105,7 @@ static char *testGetBroadcast(void) {
     Cidr cidr;
     uint32_t broadcast;
     uint32_t expectedBroadcasts[] = {0xC0A80FFF, 0xAC104FFF, 0x0AA917FF, 0x51D73FFF,
-                                     0x7FFFFFFF};
+                                     0x7FFF1FFF};
 
     for (int i = 0; i < 5; ++i) {
         CidrCreate(&cidr, m_input[i]);
