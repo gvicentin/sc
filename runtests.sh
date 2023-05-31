@@ -7,10 +7,10 @@
 # Version: v0.1.0
 # --------------------------------------------------------------------------------------
 
-readonly RED=$(tput setaf 1)
-readonly GREEN=$(tput setaf 2)
-readonly YELLOW=$(tput setaf 3)
-readonly RESET=$(tput sgr0)
+readonly RED=$(tput setaf 1 || echo "")
+readonly GREEN=$(tput setaf 2 || echo "")
+readonly YELLOW=$(tput setaf 3 || echo "")
+readonly RESET=$(tput sgr0 || echo "")
 
 function debug {
     [ "$DEBUG" = "true" ] && echo "${YELLOW}[DEBUG] $*${RESET}"
@@ -50,7 +50,7 @@ function exec_tests {
         REPORT=$(echo "$RAW_REPORT" | tail -n 1)
 
         # show report
-        printf "Running test %-64s%s\n" "$TESTS_RUN" "$STATUS_MSG"
+        printf "%-64s%s\n" "Running tests in $TEST_BIN" "$STATUS_MSG"
         if [ "$FAILED" = "true" ]; then
             echo "$REPORT"
             echo ""
