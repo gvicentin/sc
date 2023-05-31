@@ -105,7 +105,7 @@ static char *testGetBroadcast(void) {
     Cidr cidr;
     uint32_t broadcast;
     uint32_t expectedBroadcasts[] = {0xC0A80FFF, 0xAC104FFF, 0x0AA917FF, 0x51D73FFF,
-                                     0x7FFF1FFF};
+                                     0x7FFFFFFF};
 
     for (int i = 0; i < 5; ++i) {
         CidrCreate(&cidr, m_input[i]);
