@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "sc.h"
 
 void printUsageAndExit(const char *binary);
@@ -21,4 +22,3 @@ void printUsageAndExit(const char *binary) {
     printf("Example: %s 10.0.0.0/24\n\n", binary);
     exit(1);
 }
-

@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define OCTET_MAX 4
+#define OCTET_MAX  4
 #define NMATCH_MAX 6
 
-#define CIDR_BUFF_LEN 64
+#define CIDR_BUFF_LEN  64
 #define OCTET_BUFF_LEN 16
 
 static int ExtractDecimal(const char *str, size_t start, size_t end) {
@@ -15,7 +15,7 @@ static int ExtractDecimal(const char *str, size_t start, size_t end) {
     int len = end - start;
 
     // fill buffer with octet string
-    sprintf(buff, "%.*s", len,  &str[start]);
+    sprintf(buff, "%.*s", len, &str[start]);
     buff[len] = '\0';
 
     // convert to integer
@@ -34,18 +34,12 @@ bool CidrCreate(Cidr *cidr, const char *input) {
     int maskBits;
 
     // error message
-    const char *octetIndex[] = {
-        "first",
-        "second",
-        "third",
-        "fourth"
-    };
+    const char *octetIndex[] = {"first", "second", "third", "fourth"};
 
-    regcomp(
-        &cidrRegex,
-        "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$",
-        REG_EXTENDED
-    );
+    regcomp(&cidrRegex,
+            "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/"
+            "([0-9]{1,2})$",
+            REG_EXTENDED);
 
     regexValue = regexec(&cidrRegex, input, nmatch, pmatch, 0);
     regfree(&cidrRegex);
@@ -58,7 +52,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
 
     for (int i = 0; i < OCTET_MAX; ++i) {
         // extract all octets
-        octet[i] = ExtractDecimal(input, pmatch[i+1].rm_so, pmatch[i+1].rm_eo);
+        octet[i] = ExtractDecimal(input, pmatch[i + 1].rm_so, pmatch[i + 1].rm_eo);
         if (octet[i] > 255) {
             fprintf(stderr, "The %s octet is invalid (%d)\n", octetIndex[i], octet[i]);
             return false;
@@ -88,7 +82,7 @@ bool CidrCreate(Cidr *cidr, const char *input) {
 
 void CidrShowReport(Cidr *cidr) {
     char ipBuff[CIDR_BUFF_LEN], maskBuff[CIDR_BUFF_LEN];
-    char cidrBlockBuff[2*CIDR_BUFF_LEN], broadcastBuff[CIDR_BUFF_LEN];
+    char cidrBlockBuff[2 * CIDR_BUFF_LEN], broadcastBuff[CIDR_BUFF_LEN];
     uint32_t broadcast, maskBits, nHosts;
 
     maskBits = CidrGetMaskBits(cidr);

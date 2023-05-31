@@ -20,4 +20,4 @@ uint32_t CidrGetNumOfHosts(Cidr *cidr);
 void CidrToStr(char *str, uint32_t ip);
 void CidrBlockToStr(char *str, Cidr *cidr);
 
-#endif // SC_H
+#endif  // SC_H
