@@ -7,10 +7,10 @@
 # Version: v0.1.0
 # --------------------------------------------------------------------------------------
 
-readonly RED=$(tput setaf 1)
-readonly GREEN=$(tput setaf 2)
-readonly YELLOW=$(tput setaf 3)
-readonly RESET=$(tput sgr0)
+readonly RED=$(tput setaf 1 || echo "")
+readonly GREEN=$(tput setaf 2 || echo "")
+readonly YELLOW=$(tput setaf 3 || echo "")
+readonly RESET=$(tput sgr0 || echo "")
 
 function debug {
     [ "$DEBUG" = "true" ] && echo "${YELLOW}[DEBUG] $*${RESET}"
