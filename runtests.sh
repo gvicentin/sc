@@ -50,7 +50,7 @@ function exec_tests {
         REPORT=$(echo "$RAW_REPORT" | tail -n 1)
 
         # show report
-        printf "Running test %-64s%s\n" "$TESTS_RUN" "$STATUS_MSG"
+        printf "%-64s%s\n" "Running tests in $TEST_BIN" "$STATUS_MSG"
         if [ "$FAILED" = "true" ]; then
             echo "$REPORT"
             echo ""
