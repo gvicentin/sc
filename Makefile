@@ -1,53 +1,42 @@
-# ========================
-# 	DIRECTORIES
-# ========================
-SOURCEDIR	:= src
-TESTSDIR	:= tests
-BUILDDIR	:= build
-BINDIR		:= bin
+SOURCEDIR    = src
+TESTSDIR     = tests
+BUILDDIR     = build
+BUILDOBJDIR  = build/objects
+BUILDTESTDIR = build/tests
+BINARY       = build/sc
 
-# ========================
-# 	COMPILER
-# ========================
-CC      := gcc -std=c11
-CFLAGS	:= -Wall -g
+CC         = gcc -std=c11
+CFLAGS     = -Wall -g
+CTESTFLAGS = -Wall -g
 
-# ========================
-# 	BINARY
-# ========================
-NAME	:= sc
-VERSION	:= 0.1.0
-BINARY	:= $(BINDIR)/$(NAME)-$(VERSION)
+ENTRYPOINT := $(SOURCEDIR)/main.c
+SOURCES    := $(shell find $(SOURCEDIR) -name '*.c' -not -name 'main.c')
+OBJECTS    := $(patsubst $(SOURCEDIR)/%.c, $(BUILDOBJDIR)/%.o, $(SOURCES))
+TESTSRCS   := $(shell find $(TESTSDIR) -name '*.c')
+TESTS      := $(patsubst $(TESTSDIR)/%.c, $(BUILDTESTDIR)/%.bin, $(TESTSRCS))
 
-ENTRYPOINT	:= $(SOURCEDIR)/main.c
-SOURCES		:= $(shell find $(SOURCEDIR) -name '*.c' -not -name 'main.c')
-OBJECTS 	:= $(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR)/%.o, $(SOURCES))
-TESTS		:= $(shell find $(TESTSDIR) -name '*.c')
-TESTSBIN	:= $(patsubst $(TESTSDIR)/%.c, $(BINDIR)/%, $(TESTS))
+.PHONY: all compile compile-tests clean
 
-.PHONY: compile compile-tests test clean
+all: compile compile-tests
 
 compile: $(BINARY)
 
-compile-tests: compile $(TESTSBIN)
-
-test: compile-tests
-	./runtests.sh
-
-clean:
-	rm -rf $(BUILDDIR) $(BINDIR)
-
-$(BINARY): $(BUILDDIR) $(BINDIR) $(OBJECTS)
+$(BINARY): $(OBJECTS)
 	$(CC) $(CFLAGS) $(ENTRYPOINT) $(OBJECTS) $(LDFLAGS) -o $(BINARY)
 
-$(BINDIR)/%: $(TESTSDIR)/%.c $(SOURCES)
-	$(CC) -I$(SOURCEDIR) $< -o $@
+$(BUILDOBJDIR)/%.o: $(SOURCEDIR)/%.c $(BUILDOBJDIR)
+	$(CC) $(CFLAGS) -I$(SOURCEDIR) -c $< -o $@
 
-$(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	$(CC) $(CFLAGS) -I$(dir $<) -c $< -o $@
-
-$(BUILDDIR):
+$(BUILDOBJDIR):
 	mkdir -p $@
 
-$(BINDIR):
+compile-tests: $(TESTS)
+
+$(BUILDTESTDIR)/%.bin: $(TESTSDIR)/%.c $(BUILDTESTDIR)
+	$(CC) $(CFLAGS) -I$(SOURCEDIR) $< -o $(basename $@)
+
+$(BUILDTESTDIR):
 	mkdir -p $@
+
+clean:
+	rm -rf $(BUILDDIR)
