@@ -3,6 +3,7 @@
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define OCTET_MAX  4
 #define NMATCH_MAX 6
@@ -66,16 +67,14 @@ bool CidrCreate(Cidr *cidr, const char *input) {
         return false;
     }
 
-    // store ip as integer
-    cidr->ip = 0x00;
-    cidr->ip |= octet[0] << 24;
-    cidr->ip |= octet[1] << 16;
-    cidr->ip |= octet[2] << 8;
-    cidr->ip |= octet[3];
+    memset(cidr->ip, 0, sizeof(uint8_t) * IP_BUFF_LEN);
+    cidr->ip[0] = octet[3];
+    cidr->ip[1] = octet[2];
+    cidr->ip[2] = octet[1];
+    cidr->ip[3] = octet[0];
 
-    // store mask as integer
-    cidr->mask = 0xFFFFFFFF;
-    cidr->mask = cidr->mask << (32 - maskBits);
+    memset(cidr->mask, 0xFF, sizeof(uint8_t) * IP_BUFF_LEN);
+    // cidr->mask = cidr->mask << (32 - maskBits);
 
     return true;
 }
@@ -89,11 +88,11 @@ void CidrShowReport(Cidr *cidr) {
     nHosts = CidrGetNumOfHosts(cidr);
     broadcast = CidrGetBroadcast(cidr);
 
-    CidrToStr(ipBuff, cidr->ip);
-    CidrToStr(maskBuff, cidr->mask);
+    IpToStr(ipBuff, cidr->ip);
+    IpToStr(maskBuff, cidr->mask);
 
     CidrBlockToStr(cidrBlockBuff, cidr);
-    CidrToStr(broadcastBuff, broadcast);
+    IpToStr(broadcastBuff, broadcast);
 
     printf("====================================\n");
     printf("|            SUBNET CALC           |\n");
@@ -111,12 +110,16 @@ void CidrShowReport(Cidr *cidr) {
     printf("Num of Hosts:\t%20u\n", nHosts);
 }
 
-uint32_t CidrGetBlock(Cidr *cidr) {
-    return cidr->ip & cidr->mask;
+void CidrGetBlock(Cidr *cidr, Ip *ipBlock) {
+    for (uint8_t i = 0; i < IP_BUFF_LEN; ++i) {
+        ipBlock->ip[i] = cidr->ip[i] & cidr->mask[i];
+    }
 }
 
-uint32_t CidrGetBroadcast(Cidr *cidr) {
-    return cidr->ip | ~(cidr->mask);
+void CidrGetBroadcast(Cidr *cidr, Ip *broadcast) {
+    for (uint8_t i = 0; i < IP_BUFF_LEN; ++i) {
+        broadcast->ip[i] = cidr->ip[i] | ~(cidr->mask[i]);
+    }
 }
 
 uint32_t CidrGetMaskBits(Cidr *cidr) {
@@ -133,20 +136,14 @@ uint32_t CidrGetNumOfHosts(Cidr *cidr) {
     return 1 << (32 - CidrGetMaskBits(cidr));
 }
 
-void CidrToStr(char *str, uint32_t ip) {
-    uint8_t octet[OCTET_MAX];
-
-    octet[0] = ip >> 24;
-    octet[1] = ip >> 16;
-    octet[2] = ip >> 8;
-    octet[3] = ip;
-
-    sprintf(str, "%u.%u.%u.%u", octet[0], octet[1], octet[2], octet[3]);
+void IpToStr(char *str, Ip *ip) {
+    sprintf(str, "%u.%u.%u.%u", ip->ip[0], ip->ip[1], ip->ip[2], ip->ip[3]);
 }
 
 void CidrBlockToStr(char *str, Cidr *cidr) {
+    Ip ip;
     char cidrBuff[CIDR_BUFF_LEN];
-
-    CidrToStr(cidrBuff, CidrGetBlock(cidr));
+    CidrGetBlock(cidr, &ip);
+    IpToStr(cidrBuff, &ip);
     sprintf(str, "%s/%u", cidrBuff, CidrGetMaskBits(cidr));
 }

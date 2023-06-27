@@ -4,20 +4,40 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define IP_BUFF_LEN   16
+
+typedef enum {
+    IPV4 = 0,
+    IPV6,
+    IPV_COUNT
+} IpVersion;
+
 typedef struct {
-    uint32_t ip;
-    uint32_t mask;
+    uint8_t ip[IP_BUFF_LEN];
+    IpVersion version;
+} Ip;
+
+typedef struct {
+    uint8_t ip[IP_BUFF_LEN];
+    uint8_t mask[IP_BUFF_LEN];
+    IpVersion version;
 } Cidr;
 
 bool CidrCreate(Cidr *cidr, const char *input);
+
 void CidrShowReport(Cidr *cidr);
 
-uint32_t CidrGetBlock(Cidr *cidr);
-uint32_t CidrGetBroadcast(Cidr *cidr);
-uint32_t CidrGetMaskBits(Cidr *cidr);
-uint32_t CidrGetNumOfHosts(Cidr *cidr);
+void CidrGetBlock(Cidr *cidr, Ip *ipBlock);
 
-void CidrToStr(char *str, uint32_t ip);
+void CidrGetBroadcast(Cidr *cidr, Ip *broadcast);
+
+void CidrGetNumOfHosts(Cidr *cidr, uint8_t *numOfHosts);
+
+uint8_t CidrGetMaskBits(Cidr *cidr);
+
+void IpToStr(char *str, Ip *ip);
+
 void CidrBlockToStr(char *str, Cidr *cidr);
+
 
 #endif  // SC_H
